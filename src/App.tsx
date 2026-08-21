@@ -121,6 +121,9 @@ export default function App() {
     return 'dapur-utama-1';
   });
 
+  // State Penanda: Menghindari push/write sebelum data ditarik dari cloud
+  const [isLoadedFromCloud, setIsLoadedFromCloud] = useState(false);
+
   // Computed Active Database & Shortcuts
   const activeDatabase = useMemo(() => {
     const found = databases.find((d) => d.id === activeDatabaseId);
@@ -188,7 +191,48 @@ export default function App() {
   }, [tableTheme]);
 
   // =========================================================================
-  // FUNGSI SINKRONISASI OTOMATIS KE GITHUB (metadata.json)
+  // AUTO-PULL: Ambil data terbaru dari GitHub metadata.json saat web dibuka
+  // =========================================================================
+  useEffect(() => {
+    const fetchFromGitHub = async () => {
+      const OWNER = 'feriiputr3-creator';
+      const REPO = 'creator-sewadapur';
+      const FILE_PATH = 'metadata.json';
+      const TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
+
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,
+          {
+            headers: TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {},
+          }
+        );
+
+        if (response.ok) {
+          const fileData = await response.json();
+          // Dekode string Base64 dari GitHub API
+          const jsonString = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+          const parsed = JSON.parse(jsonString);
+
+          if (parsed && Array.isArray(parsed.databases) && parsed.databases.length > 0) {
+            setDatabases(parsed.databases);
+            if (parsed.activeDatabaseId) {
+              setActiveDatabaseId(parsed.activeDatabaseId);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data terbaru dari GitHub:', err);
+      } finally {
+        setIsLoadedFromCloud(true);
+      }
+    };
+
+    fetchFromGitHub();
+  }, []);
+
+  // =========================================================================
+  // AUTO-PUSH: Sinkronkan perubahan data lokal kembali ke GitHub
   // =========================================================================
   const updateMetadataJsonOnGitHub = async (dataPayload: any) => {
     const OWNER = 'feriiputr3-creator';
@@ -197,12 +241,11 @@ export default function App() {
     const TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
 
     if (!TOKEN) {
-      console.warn('VITE_GITHUB_TOKEN belum dikonfigurasi di Vercel/Environment Variables.');
+      console.warn('VITE_GITHUB_TOKEN belum dikonfigurasi di Vercel.');
       return;
     }
 
     try {
-      // 1. Ambil versi SHA file saat ini di GitHub
       const getFile = await fetch(
         `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,
         {
@@ -211,11 +254,9 @@ export default function App() {
       );
       const fileData = await getFile.json();
 
-      // 2. Encrypt payload ke Base64
       const jsonString = JSON.stringify(dataPayload, null, 2);
       const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
 
-      // 3. Kirim komit update ke GitHub
       const response = await fetch(
         `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,
         {
@@ -233,7 +274,7 @@ export default function App() {
       );
 
       if (response.ok) {
-        console.log('Data berhasil ter-backup otomatis ke metadata.json di GitHub');
+        console.log('Data berhasil tersimpan otomatis di GitHub');
       } else {
         console.error('Gagal sinkronkan data ke GitHub:', await response.json());
       }
@@ -242,8 +283,10 @@ export default function App() {
     }
   };
 
-  // Auto-sync ke GitHub tiap ada perubahan data (Debounce 2 detik)
+  // Auto-sync berjalan hanya SETELAH data awal dari cloud selesai ditarik (isLoadedFromCloud = true)
   useEffect(() => {
+    if (!isLoadedFromCloud) return;
+
     const timer = setTimeout(() => {
       if (databases && databases.length > 0) {
         updateMetadataJsonOnGitHub({
@@ -256,7 +299,7 @@ export default function App() {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [databases, activeDatabaseId]);
+  }, [databases, activeDatabaseId, isLoadedFromCloud]);
 
   const addToast = (type: 'success' | 'info' | 'error', text: string) => {
     const id = Date.now().toString() + Math.random().toString().slice(2, 6);
@@ -1024,7 +1067,7 @@ export default function App() {
             <span className="text-indigo-600 font-semibold">{activeDatabase.name}</span>
           </div>
           <div>
-            Data tersimpan otomatis secara lokal dan tersinkronisasi ke GitHub
+            Data tersimpan otomatis dan tersinkronisasi dua arah dengan GitHub
           </div>
         </div>
       </footer>
