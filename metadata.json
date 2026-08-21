@@ -1,0 +1,6 @@
+{
+  "name": "Sewa Dapur SPPG",
+  "description": "Aplikasi pencatatan dan rekapitulasi data sewa harian dapur SPPG per periode dengan manajemen multi-database dapur, penghitungan otomatis, potongan harian, dan ekspor data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
