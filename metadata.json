@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "updatedAt": "2026-08-21T04:23:44.443Z",
+  "updatedAt": "2026-08-21T04:24:08.980Z",
   "activeDatabaseId": "db-1787286218450",
   "databases": [
     {
@@ -551,8 +551,24 @@
       "description": "Database untuk Dapur 2 SPPG",
       "color": "indigo",
       "createdAt": "2026-08-21T04:23:38.450Z",
-      "updatedAt": "2026-08-21T04:23:38.450Z",
-      "records": [],
+      "updatedAt": "2026-08-21T04:24:06.970Z",
+      "records": [
+        {
+          "periode": "10-11 MEI",
+          "jumlahHari": 6,
+          "sewaPerHari": 6000000,
+          "total": 36000000,
+          "potonganPerHari": 1200000,
+          "totalPotongan": 7200000,
+          "biayaLainnya": 2000,
+          "totalBersih": 28798000,
+          "keterangan": "",
+          "statusBayar": "Lunas",
+          "id": "rec-1787286246970-5qyn",
+          "createdAt": "2026-08-21T04:24:06.970Z",
+          "updatedAt": "2026-08-21T04:24:06.970Z"
+        }
+      ],
       "extraExpenses": [],
       "settings": {
         "defaultSewaPerHari": 6000000,
