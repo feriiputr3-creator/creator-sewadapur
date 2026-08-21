@@ -155,7 +155,7 @@ export default function App() {
   const [isNewDatabaseModalOpen, setIsNewDatabaseModalOpen] = useState(false);
   const [isDatabaseManagerOpen, setIsDatabaseManagerOpen] = useState(false);
 
-  // Custom Confirmation Dialog (Replaces blocked window.confirm)
+  // Custom Confirmation Dialog
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
     isOpen: false,
     title: '',
@@ -186,6 +186,77 @@ export default function App() {
       localStorage.setItem(STORAGE_KEY_THEME, tableTheme);
     } catch (e) {}
   }, [tableTheme]);
+
+  // =========================================================================
+  // FUNGSI SINKRONISASI OTOMATIS KE GITHUB (metadata.json)
+  // =========================================================================
+  const updateMetadataJsonOnGitHub = async (dataPayload: any) => {
+    const OWNER = 'feriiputr3-creator';
+    const REPO = 'creator-sewadapur';
+    const FILE_PATH = 'metadata.json';
+    const TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
+
+    if (!TOKEN) {
+      console.warn('VITE_GITHUB_TOKEN belum dikonfigurasi di Vercel/Environment Variables.');
+      return;
+    }
+
+    try {
+      // 1. Ambil versi SHA file saat ini di GitHub
+      const getFile = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,
+        {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        }
+      );
+      const fileData = await getFile.json();
+
+      // 2. Encrypt payload ke Base64
+      const jsonString = JSON.stringify(dataPayload, null, 2);
+      const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+      // 3. Kirim komit update ke GitHub
+      const response = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: 'Otomatis sinkronisasi data dari web app',
+            content: contentBase64,
+            sha: fileData.sha,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log('Data berhasil ter-backup otomatis ke metadata.json di GitHub');
+      } else {
+        console.error('Gagal sinkronkan data ke GitHub:', await response.json());
+      }
+    } catch (err) {
+      console.error('Terjadi kesalahan saat simpan ke GitHub:', err);
+    }
+  };
+
+  // Auto-sync ke GitHub tiap ada perubahan data (Debounce 2 detik)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (databases && databases.length > 0) {
+        updateMetadataJsonOnGitHub({
+          version: '2.0',
+          updatedAt: new Date().toISOString(),
+          activeDatabaseId,
+          databases,
+        });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [databases, activeDatabaseId]);
 
   const addToast = (type: 'success' | 'info' | 'error', text: string) => {
     const id = Date.now().toString() + Math.random().toString().slice(2, 6);
@@ -233,7 +304,6 @@ export default function App() {
     let newRecords: RentalRecord[] = [];
 
     if (mode === 'retain-periods-clear-days') {
-      // PERTAHANKAN STRUKTUR PERIODE & TANGGAL, KOSONGKAN JUMLAH HARI (0 HARI)
       newRecords = records.map((r, idx) => {
         const sewaRate = mergedSettings.defaultSewaPerHari || 6000000;
         const potRate = mergedSettings.defaultPotonganPerHari || 1200000;
@@ -242,7 +312,7 @@ export default function App() {
           periode: r.periode,
           startDate: r.startDate,
           endDate: r.endDate,
-          jumlahHari: 0, // Dikosongkan menjadi 0 hari
+          jumlahHari: 0,
           sewaPerHari: sewaRate,
           total: 0,
           potonganPerHari: potRate,
@@ -265,7 +335,6 @@ export default function App() {
         updatedAt: new Date().toISOString(),
       }));
     } else {
-      // Blank
       newRecords = [];
     }
 
@@ -305,7 +374,7 @@ export default function App() {
       periode: r.periode,
       startDate: r.startDate,
       endDate: r.endDate,
-      jumlahHari: 0, // Dikosongkan menjadi 0 hari
+      jumlahHari: 0,
       sewaPerHari: sewaRate,
       total: 0,
       potonganPerHari: potRate,
@@ -421,7 +490,6 @@ export default function App() {
           `${parsed.databases.length} database dapur berhasil dipulihkan dari file backup.`
         );
       } else if (Array.isArray(parsed.records)) {
-        // Single DB legacy format restore into active DB
         updateActiveDatabase((cur) => ({
           ...cur,
           records: parsed.records,
@@ -771,7 +839,7 @@ export default function App() {
         if (sortBy === 'total-asc') {
           return (a.total || 0) - (b.total || 0);
         }
-        return 0; // default input order
+        return 0;
       });
   }, [records, searchTerm, statusFilter, sortBy]);
 
@@ -804,7 +872,7 @@ export default function App() {
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print:hidden">
         
-        {/* Metric Summary Cards: Gross, Deductions (1.2jt/hari), Other Expenses, Final Net Profit */}
+        {/* Metric Summary Cards */}
         <SummaryCards 
           records={records} 
           settings={settings}
@@ -812,7 +880,7 @@ export default function App() {
           onOpenSettings={() => setIsSettingsOpen(true)}
         />
 
-        {/* Quick Add Row Form directly accessible */}
+        {/* Quick Add Row Form */}
         <QuickAddRow
           settings={settings}
           onAddRecord={handleSaveRecord}
@@ -835,7 +903,7 @@ export default function App() {
           totalAll={records.length}
         />
 
-        {/* The Signature Yellow Header Table with Deductions & Blank Input Columns */}
+        {/* Rental Table */}
         <RentalTable
           records={filteredRecords}
           settings={settings}
@@ -849,7 +917,7 @@ export default function App() {
           onToggleTheme={handleToggleTheme}
         />
 
-        {/* Extra Operational Expenses Section (Biaya Operasional Umum / Biaya Lainnya Tambahan) */}
+        {/* Extra Operational Expenses Section */}
         <ExtraExpensesSection
           extraExpenses={extraExpenses}
           expenses={extraExpenses}
@@ -861,7 +929,7 @@ export default function App() {
 
       </main>
 
-      {/* Printable Report (Appears ONLY in Print / Save PDF view) */}
+      {/* Printable Report */}
       <PrintReportView 
         records={records} 
         settings={settings}
@@ -918,7 +986,7 @@ export default function App() {
         onImportDatabases={handleImportDatabases}
       />
 
-      {/* Modal: Confirmation Dialog for Deletions */}
+      {/* Modal: Confirmation Dialog */}
       <ConfirmModal
         isOpen={confirmDialog.isOpen}
         onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
@@ -956,7 +1024,7 @@ export default function App() {
             <span className="text-indigo-600 font-semibold">{activeDatabase.name}</span>
           </div>
           <div>
-            Data tersimpan otomatis secara lokal di perangkat Anda
+            Data tersimpan otomatis secara lokal dan tersinkronisasi ke GitHub
           </div>
         </div>
       </footer>
