@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "updatedAt": "2026-08-21T04:11:22.664Z",
+  "updatedAt": "2026-08-21T04:12:10.040Z",
   "activeDatabaseId": "dapur-utama-1",
   "databases": [
     {
@@ -8,8 +8,8 @@
       "name": "Dapur 1 SPPG (Dapur Utama)",
       "description": "Database pencatatan sewa dapur periode utama",
       "color": "indigo",
-      "createdAt": "2026-08-21T03:50:36.293Z",
-      "updatedAt": "2026-08-21T03:50:36.293Z",
+      "createdAt": "2026-08-21T04:12:07.966Z",
+      "updatedAt": "2026-08-21T04:12:07.966Z",
       "records": [
         {
           "id": "rec-1",
