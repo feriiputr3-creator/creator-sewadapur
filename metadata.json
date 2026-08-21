@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "updatedAt": "2026-08-21T04:22:46.658Z",
+  "updatedAt": "2026-08-21T04:22:54.911Z",
   "activeDatabaseId": "dapur-utama-1",
   "databases": [
     {
@@ -9,7 +9,7 @@
       "description": "Database pencatatan sewa dapur periode utama",
       "color": "indigo",
       "createdAt": "2026-08-21T04:16:30.780Z",
-      "updatedAt": "2026-08-21T04:22:44.628Z",
+      "updatedAt": "2026-08-21T04:22:52.880Z",
       "records": [
         {
           "id": "rec-1",
