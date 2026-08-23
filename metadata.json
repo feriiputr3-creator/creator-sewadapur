@@ -1,7 +1,7 @@
 {
   "version": "2.0",
-  "updatedAt": "2026-08-23T12:52:28.060Z",
-  "activeDatabaseId": "db-1787286218450",
+  "updatedAt": "2026-08-23T12:52:40.086Z",
+  "activeDatabaseId": "db-1787489558073",
   "databases": [
     {
       "id": "dapur-utama-1",
@@ -575,6 +575,26 @@
         "defaultPotonganPerHari": 1200000,
         "defaultJumlahHari": 6,
         "namaInstansi": "DAPUR 2 SPPG",
+        "subJudul": "Rekapitulasi Data Sewa Dapur Per Periode",
+        "penanggungJawab": "Pengelola Dapur SPPG",
+        "jabatan": "Koordinator Operasional",
+        "mataUang": "IDR"
+      }
+    },
+    {
+      "id": "db-1787489558073",
+      "name": "Dapur 3 SPPG",
+      "description": "Database untuk Dapur 3 SPPG",
+      "color": "indigo",
+      "createdAt": "2026-08-23T12:52:38.073Z",
+      "updatedAt": "2026-08-23T12:52:38.073Z",
+      "records": [],
+      "extraExpenses": [],
+      "settings": {
+        "defaultSewaPerHari": 6000000,
+        "defaultPotonganPerHari": 1200000,
+        "defaultJumlahHari": 6,
+        "namaInstansi": "DAPUR 3 SPPG",
         "subJudul": "Rekapitulasi Data Sewa Dapur Per Periode",
         "penanggungJawab": "Pengelola Dapur SPPG",
         "jabatan": "Koordinator Operasional",
